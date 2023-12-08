@@ -1,3 +1,16 @@
+# https://www.kaggle.com/datasets/noorulhuda90/aaupdt
+
+import os, glob
+import numpy as np
+import supervisely as sly
+from supervisely.io.fs import (
+    get_file_name_with_ext,
+    get_file_name,
+    get_file_ext,
+    file_exists,
+    get_file_size,
+)
+from dotenv import load_dotenv
 import supervisely as sly
 import os
 from dataset_tools.convert import unpack_if_archive
@@ -7,6 +20,7 @@ from supervisely.io.fs import get_file_name, get_file_size
 import shutil
 
 from tqdm import tqdm
+
 
 def download_dataset(teamfiles_dir: str) -> str:
     """Use it for large datasets to convert them on the instance"""
@@ -29,7 +43,7 @@ def download_dataset(teamfiles_dir: str) -> str:
             total=fsize,
             unit="B",
             unit_scale=True,
-        ) as pbar:        
+        ) as pbar:
             api.file.download(team_id, teamfiles_path, local_path, progress_cb=pbar)
         dataset_path = unpack_if_archive(local_path)
 
@@ -57,7 +71,8 @@ def download_dataset(teamfiles_dir: str) -> str:
 
         dataset_path = storage_dir
     return dataset_path
-    
+
+
 def count_files(path, extension):
     count = 0
     for root, dirs, files in os.walk(path):
@@ -65,21 +80,96 @@ def count_files(path, extension):
             if file.endswith(extension):
                 count += 1
     return count
-    
+
+
 def convert_and_upload_supervisely_project(
     api: sly.Api, workspace_id: int, project_name: str
 ) -> sly.ProjectInfo:
-    ### Function should read local dataset and upload it to Supervisely project, then return project info.###
-    raise NotImplementedError("The converter should be implemented manually.")
+    # project_name = "Thermal Person Detection"
+    train_path = "/home/grokhi/rawdata/aau-pd-t/Data/Data/Train"
+    test_path = "/home/grokhi/rawdata/aau-pd-t/Data/Data/Test"
+    batch_size = 30
+    images_folder = "/Images/"
+    anns_folder = "/Annotations/"
+    images_ext = ".jpg"
+    ann_ext = ".txt"
 
-    # dataset_path = "/local/path/to/your/dataset" # general way
-    # dataset_path = download_dataset(teamfiles_dir) # for large datasets stored on instance
+    ds_name_to_images = {"train": train_path, "test": test_path}
 
-    # ... some code here ...
+    def create_ann(image_path):
+        labels = []
+        tags = []
 
-    # sly.logger.info('Deleting temporary app storage files...')
-    # shutil.rmtree(storage_dir)
+        image_np = sly.imaging.image.read(image_path)[:, :, 0]
+        img_height = image_np.shape[0]
+        img_wight = image_np.shape[1]
 
-    # return project
+        if ds_name == "train":
+            tag_name = image_path.split("/")[-3].lower()
+            tags = [sly.Tag(tag_meta) for tag_meta in tag_metas if tag_meta.name == tag_name]
 
+        ann_path = image_path.replace(images_folder, anns_folder).replace(images_ext, ann_ext)
 
+        if file_exists(ann_path):
+            with open(ann_path) as f:
+                content = f.read().split("\n")
+
+                for curr_data in content:
+                    if len(curr_data) != 0:
+                        idx = 1
+                        curr_data = list(map(float, curr_data.rstrip().split(" ")))
+                        if len(curr_data) == 4:  # no class data in ann
+                            idx = 0
+
+                        left = int((curr_data[idx] - curr_data[idx + 2] / 2) * img_wight)
+                        right = int((curr_data[idx] + curr_data[idx + 2] / 2) * img_wight)
+                        top = int((curr_data[idx + 1] - curr_data[idx + 3] / 2) * img_height)
+                        bottom = int((curr_data[idx + 1] + curr_data[idx + 3] / 2) * img_height)
+                        rectangle = sly.Rectangle(top=top, left=left, bottom=bottom, right=right)
+                        label = sly.Label(rectangle, obj_class)
+                        labels.append(label)
+
+        return sly.Annotation(img_size=(img_height, img_wight), labels=labels, img_tags=tags)
+
+    obj_class = sly.ObjClass("person", sly.Rectangle)
+    # subfolder_meta = sly.TagMeta("subfolder", sly.TagValueType.ANY_STRING)
+    tag_names = [
+        "far_viewpoint",
+        "good_condition",
+        "low_resolution",
+        "occlusion",
+        "opposite_temperature",
+        "shadow",
+        "similar_temperature",
+        "snow",
+        "wind",
+    ]
+    tag_metas = [sly.TagMeta(name, sly.TagValueType.NONE) for name in tag_names]
+
+    project = api.project.create(workspace_id, project_name, change_name_if_conflict=True)
+    meta = sly.ProjectMeta(obj_classes=[obj_class], tag_metas=tag_metas)
+    api.project.update_meta(project.id, meta.to_json())
+
+    for ds_name, ds_data in ds_name_to_images.items():
+        dataset = api.dataset.create(project.id, ds_name, change_name_if_conflict=True)
+
+        images_pathes = glob.glob(ds_data + "/*/*/*.jpg")
+        if len(images_pathes) == 0:
+            images_pathes = glob.glob(ds_data + "/*/*.jpg")
+
+        progress = sly.Progress("Create dataset {}".format(ds_name), len(images_pathes))
+
+        for img_pathes_batch in sly.batched(images_pathes, batch_size=batch_size):
+            img_names_batch = [
+                im_path.split("/")[-3] + "_" + get_file_name_with_ext(im_path)
+                for im_path in img_pathes_batch
+            ]
+
+            img_infos = api.image.upload_paths(dataset.id, img_names_batch, img_pathes_batch)
+            img_ids = [im_info.id for im_info in img_infos]
+
+            anns = [create_ann(image_path) for image_path in img_pathes_batch]
+            api.annotation.upload_anns(img_ids, anns)
+
+            progress.iters_done_report(len(img_names_batch))
+    return project

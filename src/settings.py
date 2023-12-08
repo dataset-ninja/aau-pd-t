@@ -13,37 +13,39 @@ from dataset_tools.templates import (
 ##################################
 # * Before uploading to instance #
 ##################################
-PROJECT_NAME: str = None
-PROJECT_NAME_FULL: str = None
+PROJECT_NAME: str = "AAU-PD-T"
+PROJECT_NAME_FULL: str = "AAU-PD-T: Aalborg University Person Detection Thermal Dataset"
 HIDE_DATASET = True  # set False when 100% sure about repo quality
 
 ##################################
 # * After uploading to instance ##
 ##################################
-LICENSE: License = None
-APPLICATIONS: List[Union[Industry, Domain, Research]] = None
-CATEGORY: Category = None
+LICENSE: License = License.PubliclyAvailable(source_url="https://www.mdpi.com/1424-8220/20/7/1982")
+APPLICATIONS: List[Union[Industry, Domain, Research]] = [Domain.Surveillance()]
+CATEGORY: Category = Category.Surveillance(extra=Category.Sports())
 
-CV_TASKS: List[CVTask] = None
-ANNOTATION_TYPES: List[AnnotationType] = None
+CV_TASKS: List[CVTask] = [CVTask.ObjectDetection()]
+ANNOTATION_TYPES: List[AnnotationType] = [AnnotationType.ObjectDetection()]
 
 RELEASE_DATE: Optional[str] = None  # e.g. "YYYY-MM-DD"
 if RELEASE_DATE is None:
-    RELEASE_YEAR: int = None
+    RELEASE_YEAR: int = 2020
 
-HOMEPAGE_URL: str = None
+HOMEPAGE_URL: str = "https://vap.aau.dk/dataset/"
 # e.g. "https://some.com/dataset/homepage"
 
-PREVIEW_IMAGE_ID: int = None
+PREVIEW_IMAGE_ID: int = 9506828
 # This should be filled AFTER uploading images to instance, just ID of any image.
 
-GITHUB_URL: str = None
+GITHUB_URL: str = "https://github.com/dataset-ninja/aau-pd-t"
 # URL to GitHub repo on dataset ninja (e.g. "https://github.com/dataset-ninja/some-dataset")
 
 ##################################
 ### * Optional after uploading ###
 ##################################
-DOWNLOAD_ORIGINAL_URL: Optional[Union[str, dict]] = None
+DOWNLOAD_ORIGINAL_URL: Optional[
+    Union[str, dict]
+] = "https://www.kaggle.com/datasets/noorulhuda90/aaupdt/download?datasetVersionNumber=3"
 # Optional link for downloading original dataset (e.g. "https://some.com/dataset/download")
 
 CLASS2COLOR: Optional[Dict[str, List[str]]] = None
@@ -51,19 +53,38 @@ CLASS2COLOR: Optional[Dict[str, List[str]]] = None
 
 # If you have more than the one paper, put the most relatable link as the first element of the list
 # Use dict key to specify name for a button
-PAPER: Optional[Union[str, List[str], Dict[str, str]]] = None
+PAPER: Optional[Union[str, List[str], Dict[str, str]]] = "https://www.mdpi.com/1424-8220/20/7/1982"
 BLOGPOST: Optional[Union[str, List[str], Dict[str, str]]] = None
-REPOSITORY: Optional[Union[str, List[str], Dict[str, str]]] = {"GitHub":"some_link_to_repo_if_exists"}
+REPOSITORY: Optional[Union[str, List[str], Dict[str, str]]] = {
+    "Kaggle": "https://www.kaggle.com/datasets/noorulhuda90/aaupdt"
+}
 
-CITATION_URL: Optional[str] = None
-AUTHORS: Optional[List[str]] = None
-AUTHORS_CONTACTS: Optional[List[str]] = None
+CITATION_URL: Optional[str] = "https://www.kaggle.com/datasets/noorulhuda90/aaupdt"
+AUTHORS: Optional[List[str]] = [
+    "Noor Ul Huda",
+    "Bolette D. Hansen",
+    "Rikke Gade",
+    "Thomas B. Moeslund",
+]
+AUTHORS_CONTACTS: Optional[List[str]] = ["noorulhuda90@gmail.com", "nuh@create.aau.dk"]
 
-ORGANIZATION_NAME: Optional[Union[str, List[str]]] = None
-ORGANIZATION_URL: Optional[Union[str, List[str]]] = None
+ORGANIZATION_NAME: Optional[Union[str, List[str]]] = "Aalborg University, Denmark"
+ORGANIZATION_URL: Optional[Union[str, List[str]]] = "https://www.en.aau.dk/"
 
 # Set '__PRETEXT__' or '__POSTTEXT__' as a key with string value to add custom text. e.g. SLYTAGSPLIT = {'__POSTTEXT__':'some text}
-SLYTAGSPLIT: Optional[Dict[str, Union[List[str], str]]] = None
+SLYTAGSPLIT: Optional[Dict[str, Union[List[str], str]]] = {
+    "phenomena": [
+        "far_viewpoint",
+        "good_condition",
+        "low_resolution",
+        "occlusion",
+        "opposite_temperature",
+        "shadow",
+        "similar_temperature",
+        "snow",
+        "wind",
+    ]
+}
 TAGS: Optional[List[str]] = None
 
 
