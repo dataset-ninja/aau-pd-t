@@ -1,6 +1,6 @@
 Dataset **AAU-PD-T** can be downloaded in [Supervisely format](https://developer.supervisely.com/api-references/supervisely-annotation-json-format):
 
- [Download](https://assets.supervisely.com/remote/eyJsaW5rIjogImZzOi8vYXNzZXRzLzMxMTBfQUFVLVBELVQvYWF1cGR0LURhdGFzZXROaW5qYS50YXIiLCAic2lnIjogIlE0bENCSjJTajNObzZXcVc0b0xpWUNUVlFDT25BaTBUbW0xMTdBb1JybkU9In0=)
+ [Download](https://assets.supervisely.com/remote/eyJsaW5rIjogInMzOi8vc3VwZXJ2aXNlbHktZGF0YXNldHMvMzExMF9BQVUtUEQtVC9hYXVwZHQtRGF0YXNldE5pbmphLnRhciIsICJzaWciOiAiMFRQRlp2ZDFyNnRVTzBJL3k3SHdGZ1VCblBnRVpJSk04ejRBS2NWZlVCdz0ifQ==?response-content-disposition=attachment%3B%20filename%3D%22aaupdt-DatasetNinja.tar%22)
 
 As an alternative, it can be downloaded with *dataset-tools* package:
 ``` bash
